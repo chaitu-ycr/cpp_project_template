@@ -7,7 +7,7 @@ if(BUILD_CALCULATOR_EXECUTABLE)
 	target_link_libraries(calculator_app PRIVATE calculator)
 endif()
 
-if(BUILD_HELLO_EXECUTABLE)
+if(BUILD_HELLO_WORLD_EXECUTABLE)
 	add_executable(hello_world_app hello_world_app.cpp)
 	target_link_libraries(hello_world_app PRIVATE hello_world)
 endif()

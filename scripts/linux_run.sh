@@ -24,7 +24,7 @@ fi
 
 # Fallback defaults if nothing found
 if [[ ${#KNOWN[@]} -eq 0 ]]; then
-  KNOWN=(calculator_app hello_app hello_world_app unit_tests)
+  KNOWN=(calculator_app hello_world_app unit_tests)
 fi
 
 usage() {

@@ -82,7 +82,7 @@ This repository supports a few CMake options to control what gets built. Pass th
 
 - `BUILD_ALL` : Enable all build components (equivalent to turning on calculator, hello, tests and docs).
 - `BUILD_CALCULATOR_EXECUTABLE` : Build the `calculator_app` executable (default: ON).
-- `BUILD_HELLO_EXECUTABLE` : Build the `hello_app` executable (default: ON).
+- `BUILD_HELLO_WORLD_EXECUTABLE` : Build the `hello_world_app` executable (default: ON).
 - `BUILD_TESTS` : Build the unit tests (default: ON).
 - `BUILD_DOCS` : Enable Doxygen docs target (default: OFF). The `doc` target always exists but will print a helpful message if Doxygen is missing or docs are disabled.
 
@@ -96,7 +96,7 @@ cmake --build build -- -j
 
 Build only the calculator executable:
 ```bash
-cmake -S . -B build -DBUILD_CALCULATOR_EXECUTABLE=ON -DBUILD_HELLO_EXECUTABLE=OFF -DBUILD_TESTS=OFF -DBUILD_DOCS=OFF
+cmake -S . -B build -DBUILD_CALCULATOR_EXECUTABLE=ON -DBUILD_HELLO_WORLD_EXECUTABLE=OFF -DBUILD_TESTS=OFF -DBUILD_DOCS=OFF
 cmake --build build --target calculator_app -- -j
 ```
 
