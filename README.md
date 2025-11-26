@@ -32,26 +32,43 @@ brew install cmake
 
 Windows (PowerShell - clean configure & build)
 
-From a Visual Studio Developer PowerShell (or "Developer PowerShell for VS 20XX") you can run a clean configure+build using the included helper script which removes the `build` directory before configuring.
+From a Visual Studio Developer PowerShell (or "Developer PowerShell for VS 20XX") you can run a clean configure+build using the included helper script which removes the `build_win` directory before configuring.
 
 PowerShell (run from project root):
 ```powershell
 # Use default generator (NMake Makefiles) or pass a generator name
-.
-\scripts\windows_build.ps1                # uses default generator and Release build
-.
-\scripts\windows_build.ps1 -Generator "Visual Studio 17 2022" -BuildType Debug
-.
-\scripts\windows_build.ps1 -Generator "Ninja" -RunTests
+.\scripts\windows_build.ps1                # uses default generator and Release build
+.\scripts\windows_build.ps1 -Generator "Visual Studio 17 2022" -BuildType Debug
+.\scripts\windows_build.ps1 -Generator "Ninja" -RunTests
 ```
 
 If you prefer manual commands (PowerShell):
 ```powershell
-Remove-Item -Recurse -Force .\build  # delete existing build directory (clean)
-cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
-cmake --build build --config Release -- -j
+Remove-Item -Recurse -Force .\build_win  # delete existing build directory (clean)
+cmake -S . -B build_win -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
+cmake --build build_win --config Release --parallel
 # Run tests (from repo root)
-cd build; ctest -C Release --output-on-failure; cd -
+cd build_win; ctest -C Release --output-on-failure; cd -
+```
+
+Linux/Ubuntu (bash - clean configure & build)
+
+Use the included helper script for a clean configure+build workflow on Linux/Ubuntu:
+
+```bash
+# Run from project root
+./scripts/linux_build.sh                    # uses default generator (Unix Makefiles) and Release build
+./scripts/linux_build.sh --generator Ninja --build-type Debug
+./scripts/linux_build.sh --run-tests
+```
+
+If you prefer manual commands (bash):
+```bash
+rm -rf build_linux  # delete existing build directory (clean)
+cmake -S . -B build_linux -DCMAKE_BUILD_TYPE=Release
+cmake --build build_linux --parallel
+# Run tests (from repo root)
+cd build_linux && ctest --output-on-failure && cd -
 ```
 
 2. Build the project:
@@ -123,7 +140,23 @@ Windows (PowerShell):
 .\scripts\windows_run.ps1 -Name calculator_app -Config Release -Args 'input.txt','--flag'
 ```
 
-Linux / macOS (bash):
+Linux/Ubuntu (bash - using `linux_run.sh`):
+```bash
+# From the project root
+./scripts/linux_run.sh --all
+./scripts/linux_run.sh --name calculator_app
+
+# List discovered targets without running
+./scripts/linux_run.sh --list
+
+# Print resolved executable paths without running them
+./scripts/linux_run.sh --dry-run
+
+# Run a specific binary with runtime arguments (everything after --args is forwarded)
+./scripts/linux_run.sh --name calculator_app --args input.txt --flag
+```
+
+macOS (bash - using generic `run_unix.sh`):
 ```bash
 # From the project root
 ./scripts/run_unix.sh --all
@@ -139,7 +172,7 @@ Linux / macOS (bash):
 ./scripts/run_unix.sh --name calculator_app --args input.txt --flag
 ```
 
-The run scripts look for common target names (e.g. `calculator_app`, `hello_world_app`, `unit_tests`) under `build/` and will attempt to execute the matching binary. Use `-Name`/`--name` to target a specific binary or `-All`/`--all` to run every detected supported executable.
+The run scripts auto-discover target names from `CMakeLists.txt` and provide options to list targets (`--list`), preview paths (`--dry-run`), and forward runtime arguments (`--args`).
 
 ## Testing
 

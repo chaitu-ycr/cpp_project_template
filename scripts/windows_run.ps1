@@ -56,8 +56,8 @@ $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
 Push-Location $scriptDir\.. | Out-Null
 
 try {
-    if (-not (Test-Path .\build)) {
-        Write-Host "No build directory found at './build'" -ForegroundColor Yellow
+    if (-not (Test-Path .\build_win)) {
+        Write-Host "No build directory found at './build_win'. Run ./scripts/windows_build.ps1 first." -ForegroundColor Yellow
         exit 2
     }
 
@@ -80,7 +80,7 @@ try {
         $candidates = @()
 
         # First look for <name>.exe anywhere
-        $candidates += Get-ChildItem -Path .\build -Recurse -Filter ($n + '.exe') -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName -ErrorAction SilentlyContinue
+        $candidates += Get-ChildItem -Path .\build_win -Recurse -Filter ($n + '.exe') -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName -ErrorAction SilentlyContinue
 
         $candidates = $candidates | Select-Object -Unique
 

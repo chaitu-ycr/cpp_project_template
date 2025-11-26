@@ -33,7 +33,7 @@ $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
 Push-Location $scriptDir\.. | Out-Null
 
 try {
-    $buildDir = Join-Path -Path (Get-Location) -ChildPath 'build'
+    $buildDir = Join-Path -Path (Get-Location) -ChildPath 'build_win'
 
     if (Test-Path $buildDir) {
         Write-Host "Removing existing build directory: $buildDir" -ForegroundColor Yellow
@@ -42,7 +42,7 @@ try {
 
     Write-Host "Configuring (cmake) ..." -ForegroundColor Green
 
-    $cmakeArgs = @('-S', '.', '-B', 'build', '-G', $Generator)
+    $cmakeArgs = @('-S', '.', '-B', 'build_win', '-G', $Generator)
 
     # Add architecture flag for Visual Studio generators if not present
     if ($Generator -match 'Visual Studio' -and -not ($cmakeArgs -contains '-A')) {
@@ -59,12 +59,12 @@ try {
 
     Write-Host "Building (cmake --build) ..." -ForegroundColor Green
     # Use CMake's --parallel option which works across generators (MSBuild, Ninja, NMake)
-    & cmake --build build --config $BuildType --parallel
+    & cmake --build build_win --config $BuildType --parallel
     if ($LASTEXITCODE -ne 0) { throw "cmake build failed (exit $LASTEXITCODE)" }
 
     if ($RunTests) {
         Write-Host "Running tests (ctest) ..." -ForegroundColor Green
-        Push-Location build
+        Push-Location build_win
         & ctest -C $BuildType --output-on-failure
         $ctestCode = $LASTEXITCODE
         Pop-Location
