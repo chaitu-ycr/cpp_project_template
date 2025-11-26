@@ -30,6 +30,30 @@ brew install cmake
    cmake -S . -B build
    ```
 
+Windows (PowerShell - clean configure & build)
+
+From a Visual Studio Developer PowerShell (or "Developer PowerShell for VS 20XX") you can run a clean configure+build using the included helper script which removes the `build` directory before configuring.
+
+PowerShell (run from project root):
+```powershell
+# Use default generator (NMake Makefiles) or pass a generator name
+.
+\scripts\windows_build.ps1                # uses default generator and Release build
+.
+\scripts\windows_build.ps1 -Generator "Visual Studio 17 2022" -BuildType Debug
+.
+\scripts\windows_build.ps1 -Generator "Ninja" -RunTests
+```
+
+If you prefer manual commands (PowerShell):
+```powershell
+Remove-Item -Recurse -Force .\build  # delete existing build directory (clean)
+cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release -- -j
+# Run tests (from repo root)
+cd build; ctest -C Release --output-on-failure; cd -
+```
+
 2. Build the project:
    ```bash
    cmake --build build -- -j
@@ -78,6 +102,28 @@ Run the executables produced by this template (one or both may be present depend
 # Hello-world application
 ./build/src/hello_world_app
 ```
+
+Run built binaries (Windows & Unix)
+
+This repository includes helper scripts to find and run the built executables from the `build` directory.
+
+Windows (PowerShell):
+```powershell
+# From a Developer PowerShell in the repository root
+.
+\scripts\windows_run.ps1 -All            # find and run known executables (calculator_app, hello_world_app, unit_tests)
+.
+\scripts\windows_run.ps1 -Name calculator_app -Config Release
+```
+
+Linux / macOS (bash):
+```bash
+# From the project root
+./scripts/run_unix.sh --all
+./scripts/run_unix.sh --name calculator_app
+```
+
+The run scripts look for common target names (e.g. `calculator_app`, `hello_world_app`, `unit_tests`) under `build/` and will attempt to execute the matching binary. Use `-Name`/`--name` to target a specific binary or `-All`/`--all` to run every detected supported executable.
 
 ## Testing
 
