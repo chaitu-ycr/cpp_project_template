@@ -35,7 +35,7 @@ Get-ChildItem -Path . -Recurse -Filter CMakeLists.txt -ErrorAction SilentlyConti
 }
 
 # Add some default known names to cover cases where parsing might miss names
-$defaults = @('calculator_app','hello_app','hello_world_app','unit_tests')
+$defaults = @('calculator_app','hello_world_app','unit_tests')
 foreach ($d in $defaults) { if (-not ($known -contains $d)) { $known += $d } }
 
 # Make unique and keep order
