@@ -110,10 +110,17 @@ This repository includes helper scripts to find and run the built executables fr
 Windows (PowerShell):
 ```powershell
 # From a Developer PowerShell in the repository root
-.
-\scripts\windows_run.ps1 -All            # find and run known executables (calculator_app, hello_world_app, unit_tests)
-.
-\scripts\windows_run.ps1 -Name calculator_app -Config Release
+.\scripts\windows_run.ps1 -All            # find and run known executables (calculator_app, hello_world_app, unit_tests)
+.\scripts\windows_run.ps1 -Name calculator_app -Config Release
+
+# List discovered targets without running
+.\scripts\windows_run.ps1 -List
+
+# Print resolved executable paths without running them
+.\scripts\windows_run.ps1 -DryRun
+
+# Run a specific binary with runtime arguments
+.\scripts\windows_run.ps1 -Name calculator_app -Config Release -Args 'input.txt','--flag'
 ```
 
 Linux / macOS (bash):
@@ -121,6 +128,15 @@ Linux / macOS (bash):
 # From the project root
 ./scripts/run_unix.sh --all
 ./scripts/run_unix.sh --name calculator_app
+
+# List discovered targets without running
+./scripts/run_unix.sh --list
+
+# Print resolved executable paths without running them
+./scripts/run_unix.sh --dry-run
+
+# Run a specific binary with runtime arguments (everything after --args is forwarded)
+./scripts/run_unix.sh --name calculator_app --args input.txt --flag
 ```
 
 The run scripts look for common target names (e.g. `calculator_app`, `hello_world_app`, `unit_tests`) under `build/` and will attempt to execute the matching binary. Use `-Name`/`--name` to target a specific binary or `-All`/`--all` to run every detected supported executable.

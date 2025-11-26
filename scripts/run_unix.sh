@@ -9,6 +9,9 @@ cd "$SCRIPT_DIR/.."
 
 NAME=""
 ALL=false
+LIST=false
+DRY_RUN=false
+ARGS=()
 # Discover targets from CMakeLists.txt (add_executable)
 KNOWN=()
 if command -v grep >/dev/null 2>&1; then
@@ -24,9 +27,12 @@ if [[ ${#KNOWN[@]} -eq 0 ]]; then
 fi
 
 usage() {
-  echo "Usage: $0 [--name <binary>] [--all]"
+  echo "Usage: $0 [--name <binary>] [--all] [--list] [--dry-run]"
   echo "  --name <binary>   Run the named binary (without extension)"
   echo "  --all             Run all known binaries"
+  echo "  --list            Print discovered targets and exit"
+  echo "  --dry-run         Print resolved executable paths without running"
+  echo "  --args <...>      Pass remaining args to the executed binary"
   exit 2
 }
 
@@ -39,6 +45,23 @@ while [[ $# -gt 0 ]]; do
     --all)
       ALL=true
       shift
+      ;;
+    --list)
+      LIST=true
+      shift
+      ;;
+    --dry-run)
+      DRY_RUN=true
+      shift
+      ;;
+    --args)
+      shift
+      # collect remaining args as runtime args to pass to the executable
+      while [[ $# -gt 0 ]]; do
+        ARGS+=("$1")
+        shift
+      done
+      break
       ;;
     -h|--help)
       usage
@@ -60,11 +83,29 @@ if [[ "$ALL" == true ]]; then
 elif [[ -n "$NAME" ]]; then
   to_run=("$NAME")
 else
-  usage
+  # allow listing discovered targets without choosing a run target
+  if [[ "$LIST" == true ]]; then
+    if [[ ${#KNOWN[@]} -eq 0 ]]; then
+      echo "No targets discovered."; exit 0
+    fi
+    echo "Discovered targets:"; for t in "${KNOWN[@]}"; do echo " - $t"; done; exit 0
+  fi
+  if [[ "$DRY_RUN" == true ]]; then
+    # Dry-run mode: show discovered paths for all known targets but don't run
+    to_run=("${KNOWN[@]}")
+  else
+    usage
+  fi
+fi
+
+if [[ "$DRY_RUN" == true ]]; then
+  echo "Dry-run mode: discovered executables:"
 fi
 
 for n in "${to_run[@]}"; do
-  echo "Searching for $n in build/..."
+  if [[ "$DRY_RUN" != true ]]; then
+    echo "Searching for $n in build/..."
+  fi
   # Find executable files matching the name (no extension)
   matches=()
   while IFS= read -r -d $'\0' f; do
@@ -84,8 +125,16 @@ for n in "${to_run[@]}"; do
   fi
 
   for exe in "${matches[@]}"; do
-    echo "Running: $exe"
-    exe_dir=$(dirname "$exe")
-    (cd "$exe_dir" && "$exe") || echo "Process $exe exited with non-zero code"
+    if [[ "$DRY_RUN" == true ]]; then
+      echo "  $exe"
+    else
+      echo "Running: $exe"
+      exe_dir=$(dirname "$exe")
+      if [[ ${#ARGS[@]} -gt 0 ]]; then
+        (cd "$exe_dir" && "$exe" "${ARGS[@]}") || echo "Process $exe exited with non-zero code"
+      else
+        (cd "$exe_dir" && "$exe") || echo "Process $exe exited with non-zero code"
+      fi
+    fi
   done
 done

@@ -16,7 +16,10 @@ Options:
 param(
     [string]$Name,
     [switch]$All,
-    [string]$Config = 'Release'
+    [string]$Config = 'Release',
+    [string[]]$Args = @(),
+    [switch]$List,
+    [switch]$DryRun
 )
 
 Set-StrictMode -Version Latest
@@ -37,6 +40,16 @@ foreach ($d in $defaults) { if (-not ($known -contains $d)) { $known += $d } }
 
 # Make unique and keep order
 $known = $known | Select-Object -Unique
+
+if ($List) {
+    Write-Host "Discovered targets:" -ForegroundColor Cyan
+    foreach ($k in $known) { Write-Host " - $k" }
+    exit 0
+}
+
+if ($DryRun) {
+    Write-Host "Dry-run mode: discovered executables:" -ForegroundColor Yellow
+}
 
 # Ensure script is executed from repo root
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
@@ -69,32 +82,39 @@ try {
         # First look for <name>.exe anywhere
         $candidates += Get-ChildItem -Path .\build -Recurse -Filter ($n + '.exe') -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName -ErrorAction SilentlyContinue
 
-        # Also check common multi-config subfolders (Debug/Release)
-        $candidates += Get-ChildItem -Path .\build -Recurse -Filter ($n + '.exe') -Include *\$Config\* -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName -ErrorAction SilentlyContinue
-
         $candidates = $candidates | Select-Object -Unique
 
-        if (-not $candidates -or $candidates.Count -eq 0) {
+        if (@($candidates).Count -eq 0) {
             Write-Host "Could not find executable for '$n'" -ForegroundColor Yellow
             continue
         }
 
         foreach ($exe in $candidates) {
-            Write-Host "Running: $exe" -ForegroundColor Green
-            $exeDir = Split-Path -Parent $exe
-            Push-Location $exeDir
-            try {
-                & "$exe"
-                $code = $LASTEXITCODE
-                if ($code -ne 0) {
-                    Write-Host "Process exited with code $code" -ForegroundColor Yellow
+            if ($DryRun) {
+                Write-Host "  $exe" -ForegroundColor Cyan
+            }
+            else {
+                Write-Host "Running: $exe" -ForegroundColor Green
+                $exeDir = Split-Path -Parent $exe
+                Push-Location $exeDir
+                try {
+                    if ($Args -and $Args.Count -gt 0) {
+                        & "$exe" @Args
+                    }
+                    else {
+                        & "$exe"
+                    }
+                    $code = $LASTEXITCODE
+                    if ($code -ne 0) {
+                        Write-Host "Process exited with code $code" -ForegroundColor Yellow
+                    }
                 }
-            }
-            catch {
-                Write-Host "Failed to run $exe: $_" -ForegroundColor Red
-            }
-            finally {
-                Pop-Location
+                catch {
+                    Write-Host "Failed to run $exe : $($_.Exception.Message)" -ForegroundColor Red
+                }
+                finally {
+                    Pop-Location
+                }
             }
         }
     }
